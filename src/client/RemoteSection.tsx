@@ -30,6 +30,12 @@ function safeQrSvg(svg: string | undefined) {
   return trimmed
 }
 
+const INVITE_BASE_STORAGE_KEY = 'dsh-full-remote.invite-base'
+
+function readInviteBase() {
+  try { return localStorage.getItem(INVITE_BASE_STORAGE_KEY) ?? '' } catch { return '' }
+}
+
 function isLoopbackHttpUrl(url: string) {
   try {
     const parsed = new URL(url)
@@ -63,7 +69,7 @@ export function RemoteSection({ api, t, language }: RemoteSectionProps) {
   const [listenPort, setListenPort] = useState('')
   const [sessions, setSessions] = useState<SessionInfo[]>([])
   const [check, setCheck] = useState<SelfCheckResult>()
-  const [inviteBase, setInviteBase] = useState('')
+  const [inviteBase, setInviteBase] = useState(readInviteBase)
   const [invite, setInvite] = useState<InviteResult>()
   const [audit, setAudit] = useState<AuditResult>()
   const [auditLoading, setAuditLoading] = useState(false)
@@ -719,7 +725,11 @@ export function RemoteSection({ api, t, language }: RemoteSectionProps) {
             <input
               className={css.input}
               value={inviteBase}
-              onChange={event => { setInviteBase(event.target.value) }}
+              onChange={event => {
+                const value = event.target.value
+                setInviteBase(value)
+                try { localStorage.setItem(INVITE_BASE_STORAGE_KEY, value) } catch { /* storage unavailable */ }
+              }}
               placeholder={t('invite.placeholder')}
               inputMode="url"
               autoCapitalize="none"
